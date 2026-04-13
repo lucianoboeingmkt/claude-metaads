@@ -43,6 +43,8 @@ cp .env.example .env
 
 ## Configure with Claude
 
+### Option 1: Local (Claude Desktop / Claude Code)
+
 Add to your Claude Desktop config (`claude_desktop_config.json`) or Claude Code MCP settings:
 
 ```json
@@ -58,6 +60,14 @@ Add to your Claude Desktop config (`claude_desktop_config.json`) or Claude Code 
   }
 }
 ```
+
+### Option 2: Remote (Claude Web / claude.ai)
+
+Deploy the server (see [Deployment](#deployment) below), then add as a remote MCP integration in Claude.ai:
+
+1. Go to claude.ai > Settings > Integrations
+2. Add a custom integration with the URL: `https://your-server.example.com/mcp`
+3. If you set `MCP_API_KEY`, configure the authentication header
 
 ## Available Tools
 
@@ -94,15 +104,78 @@ Add to your Claude Desktop config (`claude_desktop_config.json`) or Claude Code 
 
 ## Development
 
-Run the server directly:
+### Stdio mode (local, default):
 
 ```bash
 META_ACCESS_TOKEN=your_token npx tsx src/index.ts
 ```
 
-Build for production:
+### HTTP mode (remote):
+
+```bash
+META_ACCESS_TOKEN=your_token MCP_API_KEY=your_secret npx tsx src/index.ts --http
+```
+
+The server starts on port 3000 (override with `PORT` env var).
+
+### Build for production:
 
 ```bash
 npm run build
-META_ACCESS_TOKEN=your_token node dist/index.js
+META_ACCESS_TOKEN=your_token node dist/index.js           # stdio
+META_ACCESS_TOKEN=your_token node dist/index.js --http     # http
+```
+
+## Deployment
+
+The HTTP mode (`--http`) turns the server into a deployable web service. You can host it on any platform that runs Node.js or Docker.
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `META_ACCESS_TOKEN` | Yes | Facebook access token with `ads_read` and `ads_management` permissions |
+| `MCP_API_KEY` | Recommended | API key to protect the MCP endpoint. Clients send it as `Authorization: Bearer <key>` |
+| `PORT` | No | HTTP port (default: 3000) |
+
+### Deploy with Docker
+
+```bash
+docker build -t meta-ads-mcp .
+docker run -p 3000:3000 \
+  -e META_ACCESS_TOKEN=your_token \
+  -e MCP_API_KEY=your_secret \
+  meta-ads-mcp
+```
+
+### Deploy to Railway
+
+1. Connect your GitHub repo to [Railway](https://railway.app)
+2. Set environment variables: `META_ACCESS_TOKEN`, `MCP_API_KEY`
+3. Railway detects the Dockerfile automatically
+4. Your MCP endpoint will be: `https://your-app.railway.app/mcp`
+
+### Deploy to Render
+
+1. Create a new Web Service on [Render](https://render.com)
+2. Connect your GitHub repo
+3. Set environment: `Docker`, add env vars: `META_ACCESS_TOKEN`, `MCP_API_KEY`
+4. Your MCP endpoint will be: `https://your-app.onrender.com/mcp`
+
+### Deploy to Fly.io
+
+```bash
+fly launch
+fly secrets set META_ACCESS_TOKEN=your_token MCP_API_KEY=your_secret
+fly deploy
+```
+
+Your MCP endpoint will be: `https://your-app.fly.dev/mcp`
+
+### Health Check
+
+All deployments expose a health check at `GET /health` that returns:
+
+```json
+{"status":"ok","server":"meta-ads","version":"1.0.0"}
 ```
