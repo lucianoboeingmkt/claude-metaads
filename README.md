@@ -116,7 +116,7 @@ META_ACCESS_TOKEN=your_token npx tsx src/index.ts
 META_ACCESS_TOKEN=your_token MCP_API_KEY=your_secret npx tsx src/index.ts --http
 ```
 
-The server starts on port 3000 (override with `PORT` env var).
+The server starts on port 3005 (override with `PORT` env var).
 
 ### Build for production:
 
@@ -165,7 +165,7 @@ The script will:
    - Subdomain: `mcp` (or your preference)
    - Domain: `yourdomain.com`
    - Service type: `HTTP`
-   - URL: `localhost:3000`
+   - URL: `localhost:3005`
 4. Your MCP endpoint: `https://mcp.yourdomain.com/mcp`
 
 **Connect to Claude.ai:**
@@ -186,7 +186,7 @@ sudo nano /opt/meta-ads-mcp/.env       # edit config
 
 ```bash
 docker build -t meta-ads-mcp .
-docker run -p 3000:3000 \
+docker run -p 3005:3005 \
   -e META_ACCESS_TOKEN=your_token \
   -e MCP_API_KEY=your_secret \
   meta-ads-mcp

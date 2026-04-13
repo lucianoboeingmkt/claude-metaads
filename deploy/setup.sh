@@ -68,8 +68,8 @@ if [ ! -f "$ENV_FILE" ]; then
 
   read -rp "Enter your META_ACCESS_TOKEN: " META_TOKEN
   read -rp "Enter an MCP_API_KEY (password to protect the endpoint): " API_KEY
-  read -rp "Enter PORT (default 3000): " PORT
-  PORT=${PORT:-3000}
+  read -rp "Enter PORT (default 3005): " PORT
+  PORT=${PORT:-3005}
 
   cat > "$ENV_FILE" <<EOL
 META_ACCESS_TOKEN=${META_TOKEN}
@@ -115,7 +115,7 @@ echo "  sudo apt update && sudo apt install cloudflared"
 echo ""
 echo "Then add a route in your Cloudflare Tunnel dashboard:"
 echo "  Public hostname: mcp.yourdomain.com"
-echo "  Service:         http://localhost:${PORT:-3000}"
+echo "  Service:         http://localhost:${PORT:-3005}"
 echo ""
 echo "Your MCP endpoint for Claude.ai will be:"
 echo "  https://mcp.yourdomain.com/mcp"

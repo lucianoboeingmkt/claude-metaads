@@ -53,7 +53,7 @@ async function startStdio() {
 }
 
 async function startHttp() {
-  const port = parseInt(process.env.PORT ?? '3000', 10);
+  const port = parseInt(process.env.PORT ?? '3005', 10);
   const apiKey = process.env.MCP_API_KEY;
 
   const app = createMcpExpressApp({ host: '0.0.0.0' });
