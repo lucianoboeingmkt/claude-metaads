@@ -138,6 +138,50 @@ The HTTP mode (`--http`) turns the server into a deployable web service. You can
 | `MCP_API_KEY` | Recommended | API key to protect the MCP endpoint. Clients send it as `Authorization: Bearer <key>` |
 | `PORT` | No | HTTP port (default: 3000) |
 
+### Deploy on Ubuntu VM + Cloudflare Tunnel
+
+This is the recommended approach for self-hosting. An automated setup script is included.
+
+**On your VM:**
+
+```bash
+git clone https://github.com/lucianoboeingmkt/claude-metaads.git /opt/meta-ads-mcp
+cd /opt/meta-ads-mcp
+sudo bash deploy/setup.sh
+```
+
+The script will:
+- Install Node.js 22 (if needed)
+- Create a `mcp` system user
+- Build the project
+- Ask for your `META_ACCESS_TOKEN` and `MCP_API_KEY`
+- Install and start a systemd service
+
+**Configure Cloudflare Tunnel:**
+
+1. In [Cloudflare Zero Trust](https://one.dash.cloudflare.com/) > Networks > Tunnels
+2. Select your tunnel > Public Hostname > Add
+3. Set:
+   - Subdomain: `mcp` (or your preference)
+   - Domain: `yourdomain.com`
+   - Service type: `HTTP`
+   - URL: `localhost:3000`
+4. Your MCP endpoint: `https://mcp.yourdomain.com/mcp`
+
+**Connect to Claude.ai:**
+
+1. Go to claude.ai > Settings > Integrations
+2. Add custom integration with URL: `https://mcp.yourdomain.com/mcp`
+
+**Useful commands:**
+
+```bash
+sudo systemctl status meta-ads-mcp     # check status
+sudo systemctl restart meta-ads-mcp    # restart
+sudo journalctl -u meta-ads-mcp -f     # view logs
+sudo nano /opt/meta-ads-mcp/.env       # edit config
+```
+
 ### Deploy with Docker
 
 ```bash

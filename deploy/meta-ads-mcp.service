@@ -1,0 +1,15 @@
+[Unit]
+Description=Meta Ads MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User=mcp
+WorkingDirectory=/opt/meta-ads-mcp
+ExecStart=/usr/bin/node dist/index.js --http
+Restart=always
+RestartSec=5
+EnvironmentFile=/opt/meta-ads-mcp/.env
+
+[Install]
+WantedBy=multi-user.target
