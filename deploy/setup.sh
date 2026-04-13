@@ -46,18 +46,22 @@ else
 fi
 
 # --- 4. Clone/update repo and build ---
+BRANCH="${BRANCH:-main}"
+
 echo "[3/6] Setting up application in ${APP_DIR}..."
 if [ -d "$APP_DIR/.git" ]; then
   cd "$APP_DIR"
-  git pull origin main
+  git fetch origin
+  git checkout "$BRANCH"
+  git pull origin "$BRANCH"
 else
   rm -rf "$APP_DIR"
-  git clone "$REPO_URL" "$APP_DIR"
+  git clone -b "$BRANCH" "$REPO_URL" "$APP_DIR"
   cd "$APP_DIR"
 fi
 
 echo "[4/6] Installing dependencies and building..."
-npm ci
+npm install
 npx tsc
 
 # --- 5. Configure environment ---
