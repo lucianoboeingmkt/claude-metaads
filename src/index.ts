@@ -2,6 +2,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js';
+import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
+import { DemoInMemoryAuthProvider } from '@modelcontextprotocol/sdk/examples/server/demoInMemoryOAuthProvider.js';
 import { FacebookClient } from './facebook-client.js';
 
 import { registerListAdAccountsTool } from './tools/list-ad-accounts.js';
@@ -54,18 +56,26 @@ async function startStdio() {
 
 async function startHttp() {
   const port = parseInt(process.env.PORT ?? '3005', 10);
-  const secretPath = process.env.MCP_SECRET_PATH;
-
-  // The MCP endpoint path: /mcp/<secret> if MCP_SECRET_PATH is set, otherwise /mcp
-  const mcpPath = secretPath ? `/mcp/${secretPath}` : '/mcp';
+  const baseUrl = process.env.BASE_URL ?? `http://localhost:${port}`;
+  const mcpPath = '/mcp';
 
   const app = createMcpExpressApp({ host: '0.0.0.0' });
+
+  // OAuth provider — auto-approves all connections
+  const authProvider = new DemoInMemoryAuthProvider();
+  const issuerUrl = new URL(baseUrl);
+
+  app.use(mcpAuthRouter({
+    provider: authProvider,
+    issuerUrl,
+    scopesSupported: ['mcp:tools'],
+  }));
 
   app.post(mcpPath, async (req, res) => {
     const server = createServer();
     try {
       const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: undefined, // stateless mode
+        sessionIdGenerator: undefined,
       });
 
       await server.connect(transport);
@@ -87,7 +97,6 @@ async function startHttp() {
     }
   });
 
-  // Reject GET and DELETE for stateless mode
   app.get(mcpPath, (_req, res) => {
     res.status(405).json({
       jsonrpc: '2.0',
@@ -104,20 +113,15 @@ async function startHttp() {
     });
   });
 
-  // Health check endpoint (always at /health, no secret needed)
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', server: 'meta-ads', version: '1.0.0' });
   });
 
   app.listen(port, () => {
     console.log(`Meta Ads MCP Server (HTTP) listening on port ${port}`);
-    console.log(`MCP endpoint: http://0.0.0.0:${port}${mcpPath}`);
-    console.log(`Health check: http://0.0.0.0:${port}/health`);
-    if (secretPath) {
-      console.log('Security: secret path enabled');
-    } else {
-      console.log('WARNING: No MCP_SECRET_PATH set — endpoint is open at /mcp');
-    }
+    console.log(`MCP endpoint: ${baseUrl}${mcpPath}`);
+    console.log(`OAuth issuer: ${baseUrl}`);
+    console.log(`Health check: ${baseUrl}/health`);
   });
 }
 
