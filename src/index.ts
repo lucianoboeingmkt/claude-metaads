@@ -54,27 +54,14 @@ async function startStdio() {
 
 async function startHttp() {
   const port = parseInt(process.env.PORT ?? '3005', 10);
-  const apiKey = process.env.MCP_API_KEY;
+  const secretPath = process.env.MCP_SECRET_PATH;
+
+  // The MCP endpoint path: /mcp/<secret> if MCP_SECRET_PATH is set, otherwise /mcp
+  const mcpPath = secretPath ? `/mcp/${secretPath}` : '/mcp';
 
   const app = createMcpExpressApp({ host: '0.0.0.0' });
 
-  // Authentication middleware for the MCP endpoint
-  app.use('/mcp', (req, res, next) => {
-    if (apiKey) {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
-        res.status(401).json({
-          jsonrpc: '2.0',
-          error: { code: -32001, message: 'Unauthorized: invalid or missing API key' },
-          id: null,
-        });
-        return;
-      }
-    }
-    next();
-  });
-
-  app.post('/mcp', async (req, res) => {
+  app.post(mcpPath, async (req, res) => {
     const server = createServer();
     try {
       const transport = new StreamableHTTPServerTransport({
@@ -101,7 +88,7 @@ async function startHttp() {
   });
 
   // Reject GET and DELETE for stateless mode
-  app.get('/mcp', (_req, res) => {
+  app.get(mcpPath, (_req, res) => {
     res.status(405).json({
       jsonrpc: '2.0',
       error: { code: -32000, message: 'Method not allowed. Use POST.' },
@@ -109,7 +96,7 @@ async function startHttp() {
     });
   });
 
-  app.delete('/mcp', (_req, res) => {
+  app.delete(mcpPath, (_req, res) => {
     res.status(405).json({
       jsonrpc: '2.0',
       error: { code: -32000, message: 'Method not allowed.' },
@@ -117,19 +104,19 @@ async function startHttp() {
     });
   });
 
-  // Health check endpoint
+  // Health check endpoint (always at /health, no secret needed)
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', server: 'meta-ads', version: '1.0.0' });
   });
 
   app.listen(port, () => {
     console.log(`Meta Ads MCP Server (HTTP) listening on port ${port}`);
-    console.log(`MCP endpoint: http://0.0.0.0:${port}/mcp`);
+    console.log(`MCP endpoint: http://0.0.0.0:${port}${mcpPath}`);
     console.log(`Health check: http://0.0.0.0:${port}/health`);
-    if (apiKey) {
-      console.log('Authentication: enabled (MCP_API_KEY is set)');
+    if (secretPath) {
+      console.log('Security: secret path enabled');
     } else {
-      console.log('Authentication: disabled (set MCP_API_KEY to enable)');
+      console.log('WARNING: No MCP_SECRET_PATH set — endpoint is open at /mcp');
     }
   });
 }
