@@ -20,6 +20,7 @@ npm install
 ```bash
 cp .env.example .env
 # Edit .env and add your META_ACCESS_TOKEN
+# Optionally set MCP_API_KEY and PORT for HTTP mode
 ```
 
 ## Getting a Facebook Access Token
@@ -67,7 +68,7 @@ Deploy the server (see [Deployment](#deployment) below), then add as a remote MC
 
 1. Go to claude.ai > Settings > Integrations
 2. Add a custom integration with the URL: `https://your-server.example.com/mcp`
-3. If you set `MCP_API_KEY`, configure the authentication header
+3. If you set `MCP_API_KEY`, configure the header `Authorization: Bearer <your-key>`
 
 ## Available Tools
 
@@ -135,8 +136,8 @@ The HTTP mode (`--http`) turns the server into a deployable web service. You can
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `META_ACCESS_TOKEN` | Yes | Facebook access token with `ads_read` and `ads_management` permissions |
-| `MCP_API_KEY` | Recommended | API key to protect the MCP endpoint. Clients send it as `Authorization: Bearer <key>` |
-| `PORT` | No | HTTP port (default: 3000) |
+| `MCP_API_KEY` | No | Optional Bearer token to protect the `/mcp` endpoint. Clients send `Authorization: Bearer <key>` |
+| `PORT` | No | HTTP port (default: 3005) |
 
 ### Deploy on Ubuntu VM + Cloudflare Tunnel
 
@@ -154,7 +155,7 @@ The script will:
 - Install Node.js 22 (if needed)
 - Create a `mcp` system user
 - Build the project
-- Ask for your `META_ACCESS_TOKEN` and `MCP_API_KEY`
+- Ask for your `META_ACCESS_TOKEN` and optional `MCP_API_KEY`
 - Install and start a systemd service
 
 **Configure Cloudflare Tunnel:**

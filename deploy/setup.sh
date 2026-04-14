@@ -71,7 +71,7 @@ if [ ! -f "$ENV_FILE" ]; then
   echo ""
 
   read -rp "Enter your META_ACCESS_TOKEN: " META_TOKEN
-  read -rp "Enter an MCP_API_KEY (password to protect the endpoint): " API_KEY
+  read -rp "Enter an MCP_API_KEY (optional; leave blank for no endpoint auth): " API_KEY
   read -rp "Enter PORT (default 3005): " PORT
   PORT=${PORT:-3005}
 

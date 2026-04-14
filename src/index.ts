@@ -1,9 +1,10 @@
+import 'dotenv/config';
+
+import type { NextFunction, Request, Response } from 'express';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createMcpExpressApp } from '@modelcontextprotocol/sdk/server/express.js';
-import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
-import { DemoInMemoryAuthProvider } from '@modelcontextprotocol/sdk/examples/server/demoInMemoryOAuthProvider.js';
 import { FacebookClient } from './facebook-client.js';
 
 import { registerListAdAccountsTool } from './tools/list-ad-accounts.js';
@@ -17,10 +18,31 @@ import { registerUpdateAdsetTool } from './tools/manage-adset.js';
 import { registerUpdateAdTool } from './tools/manage-ad.js';
 
 const accessToken = process.env.META_ACCESS_TOKEN;
+const apiKey = process.env.MCP_API_KEY?.trim();
 if (!accessToken) {
   console.error('ERROR: META_ACCESS_TOKEN environment variable is required.');
   console.error('Set it with your Facebook access token that has ads_read and ads_management permissions.');
   process.exit(1);
+}
+
+function requireApiKey(req: Request, res: Response, next: NextFunction): void {
+  if (!apiKey) {
+    next();
+    return;
+  }
+
+  const authHeader = req.header('authorization');
+  if (authHeader !== `Bearer ${apiKey}`) {
+    res.set('WWW-Authenticate', 'Bearer');
+    res.status(401).json({
+      jsonrpc: '2.0',
+      error: { code: -32001, message: 'Unauthorized' },
+      id: null,
+    });
+    return;
+  }
+
+  next();
 }
 
 function createServer(): McpServer {
@@ -56,20 +78,12 @@ async function startStdio() {
 
 async function startHttp() {
   const port = parseInt(process.env.PORT ?? '3005', 10);
-  const baseUrl = process.env.BASE_URL ?? `http://localhost:${port}`;
   const mcpPath = '/mcp';
 
   const app = createMcpExpressApp({ host: '0.0.0.0' });
 
-  // OAuth provider — auto-approves all connections
-  const authProvider = new DemoInMemoryAuthProvider();
-  const issuerUrl = new URL(baseUrl);
-
-  app.use(mcpAuthRouter({
-    provider: authProvider,
-    issuerUrl,
-    scopesSupported: ['mcp:tools'],
-  }));
+  // Optional Bearer auth for HTTP mode
+  app.use(mcpPath, requireApiKey);
 
   app.post(mcpPath, async (req, res) => {
     const server = createServer();
@@ -119,9 +133,9 @@ async function startHttp() {
 
   app.listen(port, () => {
     console.log(`Meta Ads MCP Server (HTTP) listening on port ${port}`);
-    console.log(`MCP endpoint: ${baseUrl}${mcpPath}`);
-    console.log(`OAuth issuer: ${baseUrl}`);
-    console.log(`Health check: ${baseUrl}/health`);
+    console.log(`MCP endpoint: ${mcpPath}`);
+    console.log('Health check: /health');
+    console.log(`MCP API key protection: ${apiKey ? 'enabled' : 'disabled'}`);
   });
 }
 
