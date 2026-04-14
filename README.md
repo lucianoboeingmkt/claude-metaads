@@ -82,6 +82,7 @@ Deploy the server (see [Deployment](#deployment) below), then add as a remote MC
 | `meta_get_ads` | Get ads, optionally filtered by ad set |
 | `meta_get_insights` | Get performance analytics with date ranges and breakdowns |
 | `meta_get_ad_creatives` | Get ad creative details (images, text, CTAs) |
+| `meta_get_custom_conversions` | Get custom conversions configured for an ad account |
 
 ### Write Tools
 
@@ -99,6 +100,7 @@ Deploy the server (see [Deployment](#deployment) below), then add as a remote MC
 - "What's the performance of campaign X in the last 7 days?"
 - "Compare CTR and CPC across all campaigns this month"
 - "Show me insights broken down by age and gender"
+- "List my custom conversions in account 123456789"
 - "Pause campaign 123456"
 - "Create a new traffic campaign called 'Summer Sale'"
 - "What are my top performing ads by ROAS?"

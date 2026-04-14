@@ -94,3 +94,10 @@ export interface AdCreative {
   asset_feed_spec?: Record<string, unknown>;
   call_to_action_type?: string;
 }
+
+export interface CustomConversion {
+  id: string;
+  name: string;
+  description?: string;
+  rule?: string;
+}

@@ -13,6 +13,7 @@ import { registerGetAdsetsTool } from './tools/get-adsets.js';
 import { registerGetAdsTool } from './tools/get-ads.js';
 import { registerGetInsightsTool } from './tools/get-insights.js';
 import { registerGetAdCreativesTool } from './tools/get-ad-creatives.js';
+import { registerGetCustomConversionsTool } from './tools/get-custom-conversions.js';
 import { registerCreateCampaignTool, registerUpdateCampaignTool } from './tools/manage-campaign.js';
 import { registerUpdateAdsetTool } from './tools/manage-adset.js';
 import { registerUpdateAdTool } from './tools/manage-ad.js';
@@ -60,6 +61,7 @@ function createServer(): McpServer {
   registerGetAdsTool(server, client);
   registerGetInsightsTool(server, client);
   registerGetAdCreativesTool(server, client);
+  registerGetCustomConversionsTool(server, client);
 
   // Write tools
   registerCreateCampaignTool(server, client);
